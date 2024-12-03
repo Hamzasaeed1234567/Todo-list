@@ -11,11 +11,10 @@
   }
 
 
+function deleteTodo(index) {
+  todos = todos.filter((todo, i) => i !== index);
+}
 
-
-  function deleteTodo(index) {
-    todos = todos.filter((_, i) => i !== index);
-  }
 </script>
 
 <style>
