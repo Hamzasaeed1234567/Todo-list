@@ -17,12 +17,7 @@ function deleteTodo(index) {
 
 </script>
 
-<style>
-
-</style>
-
 <h1>To-Do List</h1>
-
 
 <input
   type="text"
