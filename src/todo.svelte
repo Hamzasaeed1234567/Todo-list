@@ -1,38 +1,212 @@
 <script>
   let todos = [];
   let newTodo = "";
-
-
+  let category = "General";
+  let priority = "Low";
+  let isEditing = false;
+  let currentEditIndex = null;
+  let selectedTodos = [];
+  let toggleAllSelectboolean = false;
   function addTodo() {
     if (newTodo.trim()) {
-      todos = [...todos, { text: newTodo }];
+      if (isEditing && currentEditIndex !== null) {
+        todos[currentEditIndex] = { text: newTodo, category, priority };
+        isEditing = false;
+        currentEditIndex = null;
+      } else {
+        todos = [...todos, { text: newTodo, category, priority }];
+      }
       newTodo = "";
+      category = "General";
+      priority = "Low";
+    }
+    toggleAllSelectboolean= false;
+  }
+  function deleteTodo(index) {
+    todos = todos.filter((_, i) => i !== index);
+    selectedTodos = selectedTodos.filter((i) => i !== index);
+    if(todos.length == 0){
+      toggleAllSelectboolean = false;
     }
   }
-
-
-function deleteTodo(index) {
-  todos = todos.filter((todo, i) => i !== index);
+  function editTodo(index) {
+    const todo = todos[index];
+    newTodo = todo.text;
+    category = todo.category;
+    priority = todo.priority;
+    isEditing = true;
+    currentEditIndex = index;
+  }
+  function toggleSelect(index) {
+    if (selectedTodos.includes(index)) {
+      selectedTodos = selectedTodos.filter((i) => i !== index);
+      toggleAllSelectboolean = false;
+    } else {
+      selectedTodos = [...selectedTodos, index];
+    }
+  }
+  function toggleAllSelect() {
+  if (selectedTodos.length === todos.length) {
+    selectedTodos = [];
+  } else {
+    selectedTodos = todos.map((_, index) => index);
+    toggleAllSelectboolean = true;
+  }
 }
-
+  function deleteSelectedTodos() {
+    todos = todos.filter((_, i) => !selectedTodos.includes(i));
+    selectedTodos = [];
+    console.log('todos',todos)
+    if(todos.length == 0){
+      toggleAllSelectboolean = false;
+    }
+  }
 </script>
-
-<h1>To-Do List</h1>
-
-<input
-  type="text"
-  bind:value={newTodo}
-  placeholder="Add a new value..."
-/>
-<button on:click={addTodo}>Add</button>
-
-
-<ul>
-  {#each todos as todo, index}
-    <li>
-  
-      <span >{todo.text}</span>
-      <button on:click={() => deleteTodo(index)}>Delete</button>
-    </li>
-  {/each}
-</ul>
+<style>
+  .container {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    width: 100%;
+    margin-top: 20px;
+  }
+  h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  input[type="text"] {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  .priority-group {
+    display: flex;
+    justify-content: space-between;
+  }
+  .priority-group label {
+    font-size: 14px;
+    color: #555;
+  }
+  .buttons {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  button {
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  button:hover {
+    opacity: 0.9;
+  }
+  button[type="submit"] {
+    background-color: #007BFF;
+    color: white;
+  }
+  button[type="button"] {
+    background-color: #DC3545;
+    color: white;
+  }
+  ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+  }
+  li {
+    background: #F4F4F4;
+    margin: 10px 0;
+    padding: 10px;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  li label {
+    flex-grow: 1;
+  }
+  li button {
+    margin-left: 10px;
+    font-size: 14px;
+  }
+  p {
+    text-align: center;
+    color: #333;
+    font-size: 14px;
+  }
+</style>
+<div class="container">
+  <h1>To-Do List</h1>
+  <form on:submit|preventDefault={addTodo}>
+    <input
+      type="text"
+      bind:value={newTodo}
+      placeholder="Add a new task..."
+    />
+    <select bind:value={category}>
+      <option value="General">General</option>
+      <option value="Work">Work</option>
+      <option value="Personal">Personal</option>
+    </select>
+    <div class="priority-group">
+      <label>
+        <input type="radio" bind:group={priority} value="Low" /> Low
+      </label>
+      <label>
+        <input type="radio" bind:group={priority} value="Medium" /> Medium
+      </label>
+      <label>
+        <input type="radio" bind:group={priority} value="High" /> High
+      </label>
+    </div>
+    <div class="buttons">
+      <button type="submit">{isEditing ? "Save" : "Add"}</button>
+      {#if selectedTodos.length > 0}
+        <button type="button" on:click={deleteSelectedTodos}>Delete Selected</button>
+      {/if}
+    </div>
+  </form>
+  <ul>
+    {#if selectedTodos.length > 0}
+    <p>{selectedTodos.length} items selected</p>
+  {/if}
+    {#if todos.length > 0}
+       <label>Select All
+    <input
+    type="checkbox"
+    checked={toggleAllSelectboolean}
+    on:change={() => toggleAllSelect()}
+  /></label>  {/if}
+    {#each todos as todo, index}
+      <li>
+        <label>
+          <input
+            type="checkbox"
+            checked={selectedTodos.includes(index)}
+            on:change={() => toggleSelect(index)}
+          />
+          {todo.text} - {todo.category} ({todo.priority})
+        </label>
+        <button on:click={() => deleteTodo(index)}>Delete</button>
+        <button on:click={() => editTodo(index)}>Edit</button>
+      </li>
+    {/each}
+  </ul>
+</div>
