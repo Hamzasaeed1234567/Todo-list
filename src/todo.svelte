@@ -23,8 +23,8 @@
         category = "General";
         priority = "Low";
         toggleAllSelectboolean = false;
-        isLoading = false; // Hide loader after processing
-      }, 1000); // Simulate delay
+        isLoading = false;
+      }, 1000);
     }
   }
   function deleteTodo(index) {
