@@ -10,7 +10,7 @@
   let isLoading = false;
   function addTodo() {
     if (newTodo.trim()) {
-      isLoading = true; // Show loader
+      isLoading = true;
       setTimeout(() => {
         if (isEditing && currentEditIndex !== null) {
           todos[currentEditIndex] = { text: newTodo, category, priority };
