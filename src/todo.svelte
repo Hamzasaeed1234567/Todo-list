@@ -7,25 +7,30 @@
   let currentEditIndex = null;
   let selectedTodos = [];
   let toggleAllSelectboolean = false;
+  let isLoading = false;
   function addTodo() {
     if (newTodo.trim()) {
-      if (isEditing && currentEditIndex !== null) {
-        todos[currentEditIndex] = { text: newTodo, category, priority };
-        isEditing = false;
-        currentEditIndex = null;
-      } else {
-        todos = [...todos, { text: newTodo, category, priority }];
-      }
-      newTodo = "";
-      category = "General";
-      priority = "Low";
+      isLoading = true; // Show loader
+      setTimeout(() => {
+        if (isEditing && currentEditIndex !== null) {
+          todos[currentEditIndex] = { text: newTodo, category, priority };
+          isEditing = false;
+          currentEditIndex = null;
+        } else {
+          todos = [...todos, { text: newTodo, category, priority }];
+        }
+        newTodo = "";
+        category = "General";
+        priority = "Low";
+        toggleAllSelectboolean = false;
+        isLoading = false; // Hide loader after processing
+      }, 1000); // Simulate delay
     }
-    toggleAllSelectboolean= false;
   }
   function deleteTodo(index) {
     todos = todos.filter((_, i) => i !== index);
     selectedTodos = selectedTodos.filter((i) => i !== index);
-    if(todos.length == 0){
+    if (todos.length === 0) {
       toggleAllSelectboolean = false;
     }
   }
@@ -46,23 +51,28 @@
     }
   }
   function toggleAllSelect() {
-  if (selectedTodos.length === todos.length) {
-    selectedTodos = [];
-  } else {
-    selectedTodos = todos.map((_, index) => index);
-    toggleAllSelectboolean = true;
+    if (selectedTodos.length === todos.length) {
+      selectedTodos = [];
+    } else {
+      selectedTodos = todos.map((_, index) => index);
+      toggleAllSelectboolean = true;
+    }
   }
-}
   function deleteSelectedTodos() {
     todos = todos.filter((_, i) => !selectedTodos.includes(i));
     selectedTodos = [];
-    console.log('todos',todos)
-    if(todos.length == 0){
+    if (todos.length === 0) {
       toggleAllSelectboolean = false;
     }
   }
 </script>
 <style>
+.loader {
+    text-align: center;
+    color: #007BFF;
+    font-weight: bold;
+    margin-top: 10px;
+  }
   .container {
     background: #fff;
     padding: 20px;
@@ -154,46 +164,54 @@
 </style>
 <div class="container">
   <h1>To-Do List</h1>
+  {#if isLoading}
+    <p class="loader">Processing...</p>
+  {/if}
   <form on:submit|preventDefault={addTodo}>
     <input
       type="text"
       bind:value={newTodo}
       placeholder="Add a new task..."
+      disabled={isLoading}
     />
-    <select bind:value={category}>
+    <select bind:value={category} disabled={isLoading}>
       <option value="General">General</option>
       <option value="Work">Work</option>
       <option value="Personal">Personal</option>
     </select>
     <div class="priority-group">
       <label>
-        <input type="radio" bind:group={priority} value="Low" /> Low
+        <input type="radio" bind:group={priority} value="Low" disabled={isLoading} /> Low
       </label>
       <label>
-        <input type="radio" bind:group={priority} value="Medium" /> Medium
+        <input type="radio" bind:group={priority} value="Medium" disabled={isLoading} /> Medium
       </label>
       <label>
-        <input type="radio" bind:group={priority} value="High" /> High
+        <input type="radio" bind:group={priority} value="High" disabled={isLoading} /> High
       </label>
     </div>
     <div class="buttons">
-      <button type="submit">{isEditing ? "Save" : "Add"}</button>
+      <button type="submit" disabled={isLoading}>{isEditing ? "Save" : "Add"}</button>
       {#if selectedTodos.length > 0}
-        <button type="button" on:click={deleteSelectedTodos}>Delete Selected</button>
+        <button type="button" on:click={deleteSelectedTodos} disabled={isLoading}>Delete Selected</button>
       {/if}
     </div>
   </form>
   <ul>
     {#if selectedTodos.length > 0}
-    <p>{selectedTodos.length} items selected</p>
-  {/if}
+      <p>{selectedTodos.length} items selected</p>
+    {/if}
     {#if todos.length > 0}
-       <label>Select All
-    <input
-    type="checkbox"
-    checked={toggleAllSelectboolean}
-    on:change={() => toggleAllSelect()}
-  /></label>  {/if}
+      <label>
+        Select All
+        <input
+          type="checkbox"
+          checked={toggleAllSelectboolean}
+          on:change={() => toggleAllSelect()}
+          disabled={isLoading}
+        />
+      </label>
+    {/if}
     {#each todos as todo, index}
       <li>
         <label>
@@ -201,11 +219,12 @@
             type="checkbox"
             checked={selectedTodos.includes(index)}
             on:change={() => toggleSelect(index)}
+            disabled={isLoading}
           />
           {todo.text} - {todo.category} ({todo.priority})
         </label>
-        <button on:click={() => deleteTodo(index)}>Delete</button>
-        <button on:click={() => editTodo(index)}>Edit</button>
+        <button on:click={() => deleteTodo(index)} disabled={isLoading}>Delete</button>
+        <button on:click={() => editTodo(index)} disabled={isLoading}>Edit</button>
       </li>
     {/each}
   </ul>
